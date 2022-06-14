@@ -1,28 +1,18 @@
-//mongo:
-//ozovadia
-//synamediaOzEx12
-
 require("dotenv").config();
 const { getHello, getDistance, getHealth, getPopularsearch, postDistance } = require('./router-controller')
 
-//connect MongoDB
-require('./connectDB')
+const express = require('express'),
+    connectDB = require('./connectDB')
 
-const express = require('express')
 
-// const bodyParser = require('body-parser');
-const port = 8080
 const app = express()
+const port = 8080
 
+//connect to DB
+connectDB();
 
+//Initializing MiddleWare
 app.use(express.json());
-
-
-// app.use(bodyParser.urlencoded({ extended: false }));
-// app.use(bodyParser.json());
-
-//Middlewares
-
 
 //Routes
 app.get('/hello', getHello)

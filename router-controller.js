@@ -51,20 +51,12 @@ const getDistance = async (req, res) => {
                 console.log(e)
                 res.status(500).send(e)
             })
-
+            
             res.status(200).send({ distance: distance })
         })).catch((e) => {
             console.log("Can't find")
             res.status(404).send()
         })
-
-
-
-    // res.status(200).send('Im Going to explore it')
-
-
-    // let numberOfKMs = 100
-    // res.status(200).send({ "distance": numberOfKMs })
 }
 const getHealth = (req, res) => {
     // const code = mongoose.connection.readyState
