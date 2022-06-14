@@ -3,13 +3,10 @@ const mongoose = require('mongoose')
 const axios = require('axios')
 
 const getHello = (req, res) => {
-    console.log("Get/hello")
     res.status(200).send()
 }
 
 const getDistance = async (req, res) => {
-    console.log("getDistance", req.query)
-
     let { source, destination } = req.query
     if (source > destination) {
         let temp = destination
@@ -51,7 +48,7 @@ const getDistance = async (req, res) => {
                 console.log(e)
                 res.status(500).send(e)
             })
-            
+
             res.status(200).send({ distance: distance })
         })).catch((e) => {
             console.log("Can't find")
@@ -59,13 +56,8 @@ const getDistance = async (req, res) => {
         })
 }
 const getHealth = (req, res) => {
-    // const code = mongoose.connection.readyState
-    //     const name = mongoose.connection.states[code]
-    //     res.status(200).send({ 'code': code, 'health': name })//ok
-    
     try {
         const code = mongoose.connection.readyState
-        console.log(code)
         if (code == 1){
             res.status(200).send()//ok
             return;
@@ -128,7 +120,7 @@ const postDistance = async (req, res) => {
     })
 
     distanceOb.save().then((result) => {
-        res.status(201).send(result)
+        res.status(201).send({"source":result.source,"destination":result.destination,"hits":result.hits})
         // res.status(201).send()
 
     }).catch((e) => {
@@ -137,8 +129,6 @@ const postDistance = async (req, res) => {
     })
 }
 
-
-
 module.exports = {
     getHello,
     getDistance,
@@ -146,80 +136,3 @@ module.exports = {
     getPopularsearch,
     postDistance
 }
-
-
-
-
-
-
-
-
-
-// let { people } = require('../data')
-
-
-
-// const getPeople = (req, res) => {
-//   res.status(200).json({ success: true, data: people })
-// }
-
-// const createPerson = (req, res) => {
-//   const { name } = req.body
-//   if (!name) {
-//     return res
-//       .status(400)
-//       .json({ success: false, msg: 'please provide name value' })
-//   }
-//   res.status(201).send({ success: true, person: name })
-// }
-
-// const createPersonPostman = (req, res) => {
-//   const { name } = req.body
-//   if (!name) {
-//     return res
-//       .status(400)
-//       .json({ success: false, msg: 'please provide name value' })
-//   }
-//   res.status(201).send({ success: true, data: [...people, name] })
-// }
-
-// const updatePerson = (req, res) => {
-//   const { id } = req.params
-//   const { name } = req.body
-
-//   const person = people.find((person) => person.id === Number(id))
-
-//   if (!person) {
-//     return res
-//       .status(404)
-//       .json({ success: false, msg: `no person with id ${id}` })
-//   }
-//   const newPeople = people.map((person) => {
-//     if (person.id === Number(id)) {
-//       person.name = name
-//     }
-//     return person
-//   })
-//   res.status(200).json({ success: true, data: newPeople })
-// }
-
-// const deletePerson = (req, res) => {
-//   const person = people.find((person) => person.id === Number(req.params.id))
-//   if (!person) {
-//     return res
-//       .status(404)
-//       .json({ success: false, msg: `no person with id ${req.params.id}` })
-//   }
-//   const newPeople = people.filter(
-//     (person) => person.id !== Number(req.params.id)
-//   )
-//   return res.status(200).json({ success: true, data: newPeople })
-// }
-
-// module.exports = {
-//   getPeople,
-//   createPerson,
-//   createPersonPostman,
-//   updatePerson,
-//   deletePerson,
-// }
