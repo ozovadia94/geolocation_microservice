@@ -6,13 +6,33 @@ const getHello = (req, res) => {
     res.status(200).send()
 }
 
-const getDistance = async (req, res) => {
-    let { source, destination } = req.query
+const QueryUpperCase = async (query)=>{
+    let { source, destination } = query
+    if (!source || !destination) {
+        return null;
+    }
+    
+    source = source.toUpperCase()
+    destination = destination.toUpperCase()
     if (source > destination) {
         let temp = destination
         destination = source
         source = temp
     }
+    else if(source===destination)
+        return null
+    return {source,destination}
+}
+
+const getDistance = async (req, res) => {
+    let query = await QueryUpperCase(req.query)
+
+    if (query===null) {
+        res.status(500).send()
+        return
+    }
+    const { source, destination } = query
+
 
     const find = await Distance.findOneAndUpdate({ "source": source, "destination": destination },
         { $inc: { "hits": 1 } }).then(result => {
@@ -26,39 +46,35 @@ const getDistance = async (req, res) => {
         return;
     }
 
+    const url = 'https://maps.googleapis.com/maps/api/distancematrix/json?' + `origins=${source}&destinations=${destination}&key=${process.env.GoogleAPI}`
+    axios.get(url).then((result => {
+        let distance = result.data.rows[0].elements[0].distance['value'] / 1000
 
-    const url = 'https://maps.googleapis.com/maps/api/distancematrix/json?'
-    axios.get(url + 'origins=' + source +
-        '&destinations=' + destination +
-        '&key=' + "AIzaSyD_r3u549Xdp70nj1CiLlAJf2nvAKHV8Ys").then((result => {
-
-            let distance = result.data.rows[0].elements[0].distance['value'] / 1000
-
-            const distanceOb = new Distance({
-                source: source, //
-                destination: destination,
-                distance: distance,
-                hits: 1,
-            })
-
-            distanceOb.save().then((result) => {
-                console.log("add")
-
-            }).catch((e) => {
-                console.log(e)
-                res.status(500).send(e)
-            })
-
-            res.status(200).send({ distance: distance })
-        })).catch((e) => {
-            console.log("Can't find")
-            res.status(404).send()
+        const distanceOb = new Distance({
+            source: source, //
+            destination: destination,
+            distance: distance,
+            hits: 1,
         })
+
+        distanceOb.save().then((result) => {
+            console.log("add. (from api)")
+
+        }).catch((e) => {
+            console.log(e)
+            res.status(500).send(e)
+        })
+
+        res.status(200).send({ distance: distance })
+    })).catch((e) => {
+        console.log("Can't find distance")
+        res.status(404).send()
+    })
 }
 const getHealth = (req, res) => {
     try {
         const code = mongoose.connection.readyState
-        if (code == 1){
+        if (code == 1) {
             res.status(200).send()//ok
             return;
         }
@@ -89,14 +105,24 @@ const getPopularsearch = async (req, res) => {
 }
 
 const postDistance = async (req, res) => {
-    var { source, destination, distance } = req.body
+    let query = await QueryUpperCase(req.body)
+
+    if (query===null) {
+        res.status(500).send()
+        return
+    }
+    const { source, destination } = query
+
+    var {distance } = req.body
     let hits = 1;
 
-    if (!source || !destination || !distance)//Check for a missing title
+    if (!distance || distance < 0)//Check for a missing title
     {
-        console.log('data error')
         res.status(500).send()
+        return;
     }
+    source.toUpperCase()
+    destination.toUpperCase()
 
     if (source > destination) {
         let temp = destination
@@ -120,7 +146,7 @@ const postDistance = async (req, res) => {
     })
 
     distanceOb.save().then((result) => {
-        res.status(201).send({"source":result.source,"destination":result.destination,"hits":result.hits})
+        res.status(201).send({ "source": result.source, "destination": result.destination, "hits": result.hits })
         // res.status(201).send()
 
     }).catch((e) => {
